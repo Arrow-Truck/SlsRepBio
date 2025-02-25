@@ -85,7 +85,7 @@ Sub LoadBranch()
 ' Dim dadBranch As iDB2DataAdapter
 ' Dim dstBranch As DataSet
 ' 
-        ' con = New iDB2Connection(ConfigurationSettings.AppSettings("ConnString"))
+        ' con = New iDB2Connection(ConfigurationManager.AppSettings("ConnString"))
 ' con.Open()
 ' 
 ' dstBranch = New DataSet

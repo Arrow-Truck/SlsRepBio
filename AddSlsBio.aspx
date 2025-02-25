@@ -52,7 +52,7 @@
         Dim dadBranch As iDB2DataAdapter
         Dim dstBranch As DataSet
 
-        con = New iDB2Connection(ConfigurationSettings.AppSettings("ConnString"))
+        con = New iDB2Connection(ConfigurationManager.AppSettings("ConnString"))
         con.Open()
 
         dstBranch = New DataSet
@@ -118,7 +118,7 @@
 
         lblBranch.Text = DropBranch.SelectedValue
 
-        con.ConnectionString = ConfigurationSettings.AppSettings("ConnString")
+        con.ConnectionString = ConfigurationManager.AppSettings("ConnString")
         con.Open()
 
         strInsert = "Insert into AIS2000D.SLSREPBIO (" + _

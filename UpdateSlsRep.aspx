@@ -49,7 +49,7 @@
         Dim dadBranch As iDB2DataAdapter
         Dim dstBranch As DataSet
 
-        con = New iDB2Connection(ConfigurationSettings.AppSettings("ConnString"))
+        con = New iDB2Connection(ConfigurationManager.AppSettings("ConnString"))
         con.Open()
 
         dstBranch = New DataSet
@@ -73,7 +73,7 @@
         Dim cmdSelect As iDB2Command
         Dim dtrSelect As iDB2DataReader
 
-        inspeccon = New iDB2Connection(ConfigurationSettings.AppSettings("ConnString"))
+        inspeccon = New iDB2Connection(ConfigurationManager.AppSettings("ConnString"))
         inspeccon.Open()
 
 
@@ -128,7 +128,7 @@
         Dim cmdUpdate As iDB2Command
         Dim strSQL As String
 
-        con.ConnectionString = ConfigurationSettings.AppSettings("ConnString")
+        con.ConnectionString = ConfigurationManager.AppSettings("ConnString")
         con.Open()
 
         strSQL = "Update AIS2000D.SLSREPBIO set " + _

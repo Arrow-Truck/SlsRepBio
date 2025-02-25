@@ -44,7 +44,7 @@ Sub GetReps()
  Dim dstSelect As DataSet
 
  If Not IsPostBack Then
-            selectcon = New iDB2Connection(ConfigurationSettings.AppSettings("ConnString"))
+            selectcon = New iDB2Connection(ConfigurationManager.AppSettings("ConnString"))
  Selectcon.Open()
  dstSelect = New DataSet
  
@@ -67,7 +67,7 @@ Sub dgrdsalesrep_PageIndexChanged( s As Object, e As DataGridPageChangedEventArg
  
  dgrdsalesrep.CurrentPageIndex = e.NewPageIndex
  
-        sortcon = New iDB2Connection(ConfigurationSettings.AppSettings("ConnString"))
+        sortcon = New iDB2Connection(ConfigurationManager.AppSettings("ConnString"))
 	sortcon.Open()
 	dstSort = New DataSet
 
@@ -88,7 +88,7 @@ Sub dgrdsalesrep_ItemCommand( s As Object, e As DataGridCommandEventArgs )
             Dim cmdDelete As iDB2Command
             Dim strDelete As String
  
-            deletecon.ConnectionString = ConfigurationSettings.AppSettings("ConnString")
+            deletecon.ConnectionString = ConfigurationManager.AppSettings("ConnString")
             deletecon.Open()
 
             Dim itemCell As TableCell = e.Item.Cells(0)

@@ -44,7 +44,7 @@ Public strRepNo As String
         Dim dstSelect As DataSet
 
         If Not IsPostBack Then
-            selectcon = New iDB2Connection(ConfigurationSettings.AppSettings("ConnString"))
+            selectcon = New iDB2Connection(ConfigurationManager.AppSettings("ConnString"))
             Selectcon.Open()
             dstSelect = New DataSet
  
@@ -70,7 +70,7 @@ Public strRepNo As String
  
         dgrdsalesrep.CurrentPageIndex = e.NewPageIndex
  
-        sortcon = New iDB2Connection(ConfigurationSettings.AppSettings("ConnString"))
+        sortcon = New iDB2Connection(ConfigurationManager.AppSettings("ConnString"))
         sortcon.Open()
         dstSort = New DataSet
 
@@ -99,7 +99,7 @@ Sub getSortedReps( strSortField as String )
  Dim sortcon As new iDB2Connection
  Dim dadSort As iDB2DataAdapter
  Dim dstSort As DataSet
-        sortcon = New iDB2Connection(ConfigurationSettings.AppSettings("ConnString"))
+        sortcon = New iDB2Connection(ConfigurationManager.AppSettings("ConnString"))
 	sortcon.Open()
 	dstSort = New DataSet
 
