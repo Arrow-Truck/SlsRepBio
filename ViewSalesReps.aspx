@@ -1,260 +1,229 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
-<html><!-- InstanceBegin template="../Templates/main.dwt" codeOutsideHTMLIsLocked="false" -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<!-- InstanceBeginEditable name="doctitle" -->
-<title>ViewSalesReps</title>
-<!- ******************************************************************* ->
-<!- * File: ViewSalesReps.aspx                                        * ->
-<!- *                                                                 * ->
-<!- * Purpose: View STAFFs                                        * ->
-<!- *                                                                 * ->
-<!- * Written by: Clifton Davis 12.19.2005                            * ->
-<!- *                                                                 * ->
-<!- ******************************************************************* -> 
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <title>Website Maintenance</title>
 
-<%@ Import NameSpace="IBM.Data.DB2.iseries" %>
-<%@ Import NameSpace="System.Data" %>
-<%@ Import NameSpace="System.Web.Mail" %>
-<!- ******************************************************************* ->
-<!- *                      Define Script                              * ->
-<!- ******************************************************************* -> 
-<Script Runat="Server">
-Public strSortField As String
-Public strBranch As String
-Public strRepNo As String
+    <%@ Import Namespace="IBM.Data.DB2.iseries" %>
+    <%@ Import Namespace="System.Data" %>
+    <%@ Import Namespace="System.Web.Mail" %>
 
-    Sub Page_Load()
+    <script runat="Server">
+        Public strSortField As String
 
-        strBranch = ucase(Request.QueryString("branch"))
-        strRepNo = Request.QueryString("repno")
-        ' strBranch = Session("branch")
-        lblBranch.Text = strBranch
-        Session("branch") = lblBranch.Text
- 
-        GetReps()
+        Sub Page_Load()
 
-    End Sub
+            lblBranch.Text = Session("SLSREPBIO_BRANCH")
+            strSortField = Session("sortField")
 
-    Sub GetReps()
-        Dim selectcon As New iDB2Connection
-        Dim dtrSelect As iDB2DataReader
-        Dim dadSelect As iDB2DataAdapter
-        Dim dstSelect As DataSet
+            If Not IsPostBack Then
+                Session("sortField") = "SLSREPNO"
+                strSortField = Session("sortField")
+                GetReps()
+            End If
 
-        If Not IsPostBack Then
-            selectcon = New iDB2Connection(ConfigurationManager.AppSettings("ConnString"))
-            Selectcon.Open()
-            dstSelect = New DataSet
- 
-            ' If strRepNo <> "" Then 
-            ' dadSelect = New iDB2DataAdapter("Select SLSREPNO,SLSBRANCH,SLSFNAME,SLSLNAME,SLSEMAIL from AISTESTLIB.SLSREPBIO where SLSREPNO = " + strRepNo + " Order by SLSREPNO", selectcon)
-            ' Else
-            dadSelect = New iDB2DataAdapter("Select * from AIS2000D.SLSREPBIO where  SLSBRANCH Like ('%" & lblBranch.Text & "%')" + "  Order by SLSREPNO", selectcon)
-            'End If 
-            dadSelect.Fill(dstSelect)
+        End Sub
+
+        Sub GetReps()
+
+            Dim con = New iDB2Connection(ConfigurationManager.AppSettings("ConnString"))
+            con.Open()
+
+            Dim strSql = "Select * from SLSREPBIO where  SLSBRANCH Like ('%" & lblBranch.Text & "%')" + "  Order by " + strSortField
+            Dim dataSelect = New iDB2DataAdapter(strSql, con)
+
+            Dim dstSelect = New DataSet
+            dataSelect.Fill(dstSelect)
+
             dgrdsalesrep.DataSource = dstSelect
             dgrdsalesrep.DataBind()
- 
-            selectcon.Close()
- 
-        End If
-    End Sub
 
-    Sub dgrdsalesrep_PageIndexChanged(s As Object, e As DataGridPageChangedEventArgs)
-        Dim sortcon As New iDB2Connection
-        Dim dtrSelect As iDB2DataReader
-        Dim dadSort As iDB2DataAdapter
-        Dim dstSort As DataSet
- 
-        dgrdsalesrep.CurrentPageIndex = e.NewPageIndex
- 
-        sortcon = New iDB2Connection(ConfigurationManager.AppSettings("ConnString"))
-        sortcon.Open()
-        dstSort = New DataSet
+            con.Close()
 
-        strSortField = "SLSBRANCH"
+        End Sub
 
-        dadSort = New iDB2DataAdapter("Select * from AIS2000D.SLSREPBIO where SLSBRANCH Like ('%" & lblBranch.Text & "%')" + " Order By " & strSortField, sortcon)
-        dadSort.Fill(dstSort)
-        dgrdsalesrep.DataSource = dstSort
-        dgrdsalesrep.DataBind()
-        sortcon.Close()
+        Sub dgrdsalesrep_PageIndexChanged(s As Object, e As DataGridPageChangedEventArgs)
+            dgrdsalesrep.CurrentPageIndex = e.NewPageIndex
+            GetReps()
+        End Sub
 
-    End Sub
+        Sub dgrdsalesrep_SortCommand(s As Object, e As DataGridSortCommandEventArgs)
+            Session("sortField") = e.SortExpression
+            strSortField = Session("sortField")
+            GetReps()
+        End Sub
 
-Sub dgrdsalesrep_SortCommand( s As Object, e As DataGridSortCommandEventArgs )
+        Sub dgrdsalesrep_ItemDataBound(s As Object, e As DataGridItemEventArgs)
+            If e.Item.ItemType = ListItemType.Item Then
+                e.Item.Cells(6).Attributes.Add("onclick", "return confirm('Are you sure you want to delete?');")
+            End If
+        End Sub
 
- Session( "sortField" ) = e.sortExpression
- strSortField = Session( "sortField" ) 
- getSortedReps( strSortField )
 
- End Sub
- 
-Sub getSortedReps( strSortField as String )
-' *********************************************************************
-' *                     Define getSortedTrucks                        *
-' *********************************************************************	
- Dim sortcon As new iDB2Connection
- Dim dadSort As iDB2DataAdapter
- Dim dstSort As DataSet
-        sortcon = New iDB2Connection(ConfigurationManager.AppSettings("ConnString"))
-	sortcon.Open()
-	dstSort = New DataSet
+        Sub dgrdsalesrep_ItemCommand(s As Object, e As DataGridCommandEventArgs)
 
-        dadSort = New iDB2DataAdapter("Select * from AIS2000D.SLSREPBIO  where  SLSBRANCH Like ('%" & lblBranch.Text & "%')" + " Order By " & strSortField, sortcon)
- 
-    dadSort.Fill(dstSort)
-    dgrdsalesrep.DataSource= dstSort
-    dgrdsalesrep.DataBind()
-	sortcon.Close()
-End Sub
+            If e.CommandName = "Delete" Then
+                Dim deletecon As New iDB2Connection
+                Dim cmdDelete As iDB2Command
+                Dim strDelete As String
 
-Sub Button_Click( s As Object, e As EventArgs )
- Response.Redirect( "SearchSlsRep.aspx" )
-End Sub 
+                'deletecon.ConnectionString = ConfigurationManager.AppSettings("ConnString")
+                'deletecon.Open()
 
-Sub Home_Click( s As Object, e As EventArgs )
-        Response.Redirect("SalesRepMenu.aspx?branch=" + lblBranch.Text)
-End Sub
-</script>
-<!-- InstanceEndEditable -->
-<!-- InstanceBeginEditable name="head" -->
-<!-- InstanceEndEditable -->
-<style type="text/css">
-<!--
-body {
-	margin-left: 0px;
-	margin-top: 0px;
-	margin-right: 0px;
-	margin-bottom: 0px;
-	font-family:Arial, Helvetica, sans-serif;
-}
-.style1 {
-	font-weight: bold;
-	font-style: italic;
-	color: #FFFFFF;
-}
-.style2 {
-	color: #000000;
-	font-weight: bold;
-	font-size: 25px;
-}
--->
-</style></head>
+                'Dim itemCell As TableCell = e.Item.Cells(0)
+                'Dim item As String = itemCell.Text
+                'strSls = item
+
+
+                'strDelete = "Delete from SLSREPBIO Where SLSREPNO=? and SLSBRANCH = '" & strbranch & "' "
+
+                'cmdDelete = New iDB2Command(strDelete, deletecon)
+                'cmdDelete.Parameters.Add("@SLSREPNO", CInt(strSls))
+
+                'cmdDelete.ExecuteNonQuery()
+                'deletecon.Close()
+
+                ''Redirect back to menu
+                'Response.Redirect("SalesRepMenu.aspx?branch=" + strbranch)
+            End If
+        End Sub
+
+        Sub Home_Click(s As Object, e As EventArgs)
+            Response.Redirect("SalesRepMenu.aspx")
+        End Sub
+    </script>
+
+    <style type="text/css">
+        body {
+            margin-left: 0px;
+            margin-top: 0px;
+            margin-right: 0px;
+            margin-bottom: 0px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .style1 {
+            font-weight: bold;
+            font-style: italic;
+            color: #FFFFFF;
+        }
+
+        .style2 {
+            color: #000000;
+            font-weight: bold;
+            font-size: 25px;
+        }
+    </style>
+</head>
 
 <body>
-<table width="800" border="0" align="center">
-  <tr>
-    <td valign="top">
-      <table width="799" border="0">
-        <tr>	
-          <td align="left" width="30%" ><img src="../Images/arrowlogoweb.GIF" >
-          </td>
-          <td align="right" width="70%" valign="right" ><span class="style2">WEBSITE MAINTENANCE</span>
-          </td>
+    <table width="800" border="0" align="center">
+        <tr>
+            <td valign="top">
+                <table width="799" border="0">
+                    <tr>
+                        <td align="left" width="30%">
+                            <img src="Images/arrowlogoweb.GIF" alt="Arrow Truck Sales">
+                        </td>
+                        <td align="right" width="70%" valign="right"><span class="style2">WEBSITE MAINTENANCE</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
         </tr>
-      </table>
-    </td>
-   </tr>
-   
-   <tr>
-      <td height="3" bgcolor="#CC3333"> </td>
-   </tr>
-       
-  <tr>
-    <td height="281"><!-- InstanceBeginEditable name="EditRegion3" -->
-<p align="center"><strong>BRANCH STAFFS LIST</strong></p>
-  <p><center><form runat="Server">
-    <asp:DataGrid
-  	ID="dgrdsalesrep"
-	AllowSorting="True"
-	OnSortCommand="dgrdsalesrep_SortCommand"
-	AllowPaging="true"
-	PagerStyle-Position="Bottom"
-    PagerStyle-Mode="NumericPages"
-	PagerStyle-BackColor="#CCCCCC"
-	PagerStyle-HorizontalAlign="Center" 
-	Font-Size="10pt"
-	AutoGenerateColumns="False"
-	CellPadding="2"
-	PageSize="25"
-	OnPageIndexChanged="dgrdsalesrep_PageIndexChanged"
-	AlternatingItemStyle-Backcolor="#CCCCCC"
-	Runat="Server">
-			
-	<HeaderStyle BackColor="#CCCCCC" HorizontalAlign="Center" Font-Bold="True">
-	</HeaderStyle>
- <Columns>
- 
-  <asp:HyperLinkColumn
-   DataNavigateUrlField="slsrepno"
-   HeaderText="Emp #"
-   DataNavigateUrlFormatString="UpdateSlsRep.aspx?slsrepno={0}"
-   DataTextField="SLSREPNO" /> 
-       
-  <asp:BoundColumn
-   HeaderText="Branch"
-   DataField="SLSBRANCH" 
-   SortExpression="slsbranch"/> 
-  <asp:BoundColumn
-   HeaderText="First Name"
-   DataField="SLSFNAME"
-   SortExpression="slsfname"/>
-  <asp:BoundColumn
-   HeaderText="Last Name"
-   DataField="SLSLNAME"
-   SortExpression="slslname"/> 
-  <asp:BoundColumn
-   HeaderText="E-Mail"
-   DataField="SLSEMAIL" 
-   SortExpression="SLSEMAIL" /> 
 
-  <asp:BoundColumn
-   HeaderText="Phone"
-   DataField="SLSPHONE"
-   SortExpression="SLSPHONE"/> 
-   
-   </Columns>
-			
-    </asp:DataGrid>    
-      <table width="825" border="0" bordercolor="#FFFFFF" bgcolor="#FFFFFF">
         <tr>
-          <td colspan="3" align="center" bgcolor="#FFFFFF"><asp:Button
-                   Text="Return to Menu"
-                   OnClick="Home_Click"
-                   runat="Server" /></td>
-          </tr>
-        <tr>
-          <td align="center" bgcolor="#FFFFFF"><asp:Button
-                   Text="Return To Search"
-				   Visible="false"
-                   OnClick="Button_Click"
-                   runat="Server" /></td>
-          <td width="238" align="center" bgcolor="#FFFFFF">&nbsp;</td>
-          <td width="319" align="center" bgcolor="#FFFFFF">
-              <asp:Label
-              ID="lblBranch"
-			  Visible="false"
-			  Text=""
-			  runat="server" /></td>
+            <td height="3" bgcolor="#CC3333"></td>
         </tr>
-      </table>
-	  </form></center> </p>
-	
-	<!-- InstanceEndEditable --></td>
-  </tr>
-  
-  <tr>
-    <td valign="top">
-         <table width="799" border="0">
-              <tr>
-                <td height="12" bgcolor="#cc3333"> </td>
-              </tr>
-         </table>
-    </td>
-  </tr>
-</table>
+
+        <tr>
+            <td height="281">
+
+                <p align="center"><strong>BRANCH STAFFS LIST</strong></p>
+                <div>
+                    <center>
+                        <form runat="Server">
+                            <asp:DataGrid
+                                ID="dgrdsalesrep"
+                                AllowSorting="True"
+                                OnSortCommand="dgrdsalesrep_SortCommand"
+                                OnItemCommand="dgrdsalesrep_ItemCommand"
+                                OnItemDataBound="dgrdsalesrep_ItemDataBound"
+                                AllowPaging="true"
+                                PagerStyle-Position="Bottom"
+                                PagerStyle-Mode="NumericPages"
+                                PagerStyle-BackColor="#CCCCCC"
+                                PagerStyle-HorizontalAlign="Center"
+                                Font-Size="10pt"
+                                AutoGenerateColumns="False"
+                                CellPadding="2"
+                                PageSize="20"
+                                OnPageIndexChanged="dgrdsalesrep_PageIndexChanged"
+                                AlternatingItemStyle-BackColor="#CCCCCC"
+                                runat="Server">
+
+                                <HeaderStyle BackColor="#CCCCCC" HorizontalAlign="Center" Font-Bold="True"></HeaderStyle>
+                                <Columns>
+
+                                    <asp:HyperLinkColumn
+                                        DataNavigateUrlField="slsrepno"
+                                        HeaderText="Emp #"
+                                        DataNavigateUrlFormatString="UpdateSlsRep.aspx?slsrepno={0}"
+                                        DataTextField="SLSREPNO" />
+                                    <asp:BoundColumn
+                                        HeaderText="Branch"
+                                        DataField="SLSBRANCH"
+                                        SortExpression="slsbranch" />
+                                    <asp:BoundColumn
+                                        HeaderText="First Name"
+                                        DataField="SLSFNAME"
+                                        SortExpression="slsfname" />
+                                    <asp:BoundColumn
+                                        HeaderText="Last Name"
+                                        DataField="SLSLNAME"
+                                        SortExpression="slslname" />
+                                    <asp:BoundColumn
+                                        HeaderText="E-Mail"
+                                        DataField="SLSEMAIL"
+                                        SortExpression="SLSEMAIL" />
+                                    <asp:BoundColumn
+                                        HeaderText="Phone"
+                                        DataField="SLSPHONE"
+                                        SortExpression="SLSPHONE" />
+                                    <asp:ButtonColumn
+                                        HeaderText="Action"
+                                        CommandName="Delete"
+                                        Text="DELETE!" />
+                                </Columns>
+
+                            </asp:DataGrid>
+                            <table width="825" border="0" bordercolor="#FFFFFF" bgcolor="#FFFFFF" height="50">
+                                <tr style="line-height: 30px">
+                                    <td colspan="3" align="center" bgcolor="#FFFFFF">
+                                        <asp:Button
+                                            Text="Return to Menu"
+                                            OnClick="Home_Click"
+                                            runat="Server" /></td>
+                                </tr>
+                            </table>
+                            <asp:Label ID="lblBranch" runat="Server" Visible="false" />
+                        </form>
+                    </center>
+                </div>
+
+            </td>
+        </tr>
+
+        <tr>
+            <td valign="top">
+                <table width="799" border="0">
+                    <tr>
+                        <td height="12" bgcolor="#cc3333"></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
 </body>
-<!-- InstanceEnd --></html>
+</html>

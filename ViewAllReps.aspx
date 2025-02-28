@@ -1,224 +1,185 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
-<html><!-- InstanceBegin template="../Templates/main.dwt" codeOutsideHTMLIsLocked="false" -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<!-- InstanceBeginEditable name="doctitle" -->
-<title>ViewAllReps</title>
-<!- ******************************************************************* ->
-<!- * File: ViewAllReps.aspx                                          * ->
-<!- *                                                                 * ->
-<!- * Purpose: View All STAFFs                                    * ->
-<!- *                                                                 * ->
-<!- * Written by: Clifton Davis 12.23.2005                            * ->
-<!- *                                                                 * ->
-<!- ******************************************************************* -> 
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <title>Website Maintenance</title>
 
-<%@ Import NameSpace="IBM.Data.DB2.iseries" %>
-<%@ Import NameSpace="System.Data" %>
-<%@ Import NameSpace="System.Web.Mail" %>
-<!- ******************************************************************* ->
-<!- *                      Define Script                              * ->
-<!- ******************************************************************* -> 
-<Script Runat="Server">
-Public strSortField As String
+    <%@ Import Namespace="IBM.Data.DB2.iseries" %>
+    <%@ Import Namespace="System.Data" %>
+    <%@ Import Namespace="System.Web.Mail" %>
 
-Sub Page_Load
- GetReps()
-End Sub
+    <script runat="Server">
+        Public strSortField As String
 
-Sub GetReps()
- Dim selectcon As New iDB2Connection
- Dim dtrSelect As iDB2DataReader
- Dim dadSelect As iDB2DataAdapter
- Dim dstSelect As DataSet
+        Sub Page_Load()
 
- If Not IsPostBack Then
-            selectcon = New iDB2Connection(ConfigurationManager.AppSettings("ConnString"))
- Selectcon.Open()
- dstSelect = New DataSet
- 
- dadSelect = New iDB2DataAdapter("Select SLSREPNO,SLSBRANCH,SLSFNAME,SLSLNAME,SLSEMAIL from AISTESTLIB.SLSREPBIO Order by SLSBRANCH", selectcon)
- 
- dadSelect.Fill(dstSelect)
- dgrdsalesrep.DataSource= dstSelect
- dgrdsalesrep.DataBind()
- 
- selectcon.Close()
- 
- End If
-End Sub
+            If Session("SLSREPBIO_USER") Is Nothing Or Session("SLSREPBIO_BRANCH") Is Nothing Then
+                Response.Redirect("SlsMaintLogin.aspx")
+            End If
+
+            strSortField = Session("sortField")
+            If strSortField Is Nothing Then
+                strSortField = "SLSREPNO"
+                Session("sortField") = strSortField
+            End If
+
+            If Not IsPostBack Then
+                GetReps()
+            End If
+        End Sub
+
+        Sub GetReps()
+
+            Dim con = New iDB2Connection(ConfigurationManager.AppSettings("ConnString"))
+            con.Open()
+
+            Dim strSql = "Select * from SLSREPBIO Order by " + strSortField
+            Dim dataSelect = New iDB2DataAdapter(strSql, con)
+
+            Dim dstSelect = New DataSet
+            dataSelect.Fill(dstSelect)
+
+            dgrdsalesrep.DataSource = dstSelect
+            dgrdsalesrep.DataBind()
+
+            con.Close()
+
+        End Sub
 
 
-Sub dgrdsalesrep_PageIndexChanged( s As Object, e As DataGridPageChangedEventArgs )
- Dim sortcon As New iDB2Connection
- Dim dtrSelect As iDB2DataReader
- Dim dadSort As iDB2DataAdapter
- Dim dstSort As DataSet
- 
- dgrdsalesrep.CurrentPageIndex = e.NewPageIndex
- 
- 	dadSort = New iDB2DataAdapter("Select SLSREPNO,SLSBRANCH,SLSFNAME,SLSLNAME,SLSEMAIL from AISTESTLIB.SLSREPBIO Order By " & strSortField, sortcon)
-    dadSort.Fill(dstSort)
-    dgrdsalesrep.DataSource= dstSort
-    dgrdsalesrep.DataBind()
-	sortcon.Close()
+        Sub dgrdsalesrep_PageIndexChanged(s As Object, e As DataGridPageChangedEventArgs)
+            dgrdsalesrep.CurrentPageIndex = e.NewPageIndex
+            GetReps()
+        End Sub
 
-End Sub
+        Sub dgrdsalesrep_SortCommand(s As Object, e As DataGridSortCommandEventArgs)
+            Session("sortField") = e.SortExpression
+            strSortField = Session("sortField")
+            GetReps()
+        End Sub
 
-Sub dgrdsalesrep_SortCommand( s As Object, e As DataGridSortCommandEventArgs )
+        Sub Home_Click(s As Object, e As EventArgs)
+            Response.Redirect("SalesRepMenu.aspx")
+        End Sub</script>
 
- Session( "sortField" ) = e.sortExpression
- strSortField = Session( "sortField" ) 
- getSortedReps( strSortField )
+    <style type="text/css">
+        body {
+            margin-left: 0px;
+            margin-top: 0px;
+            margin-right: 0px;
+            margin-bottom: 0px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
 
- End Sub
- 
-Sub getSortedReps( strSortField as String )
-' *********************************************************************
-' *                     Define getSortedTrucks                        *
-' *********************************************************************	
- Dim sortcon As new iDB2Connection
- Dim dadSort As iDB2DataAdapter
- Dim dstSort As DataSet
-        sortcon = New iDB2Connection(ConfigurationManager.AppSettings("ConnString"))
-	sortcon.Open()
-	dstSort = New DataSet
+        .style1 {
+            font-weight: bold;
+            font-style: italic;
+            color: #FFFFFF;
+        }
 
-	dadSort = New iDB2DataAdapter("Select SLSREPNO,SLSBRANCH,SLSFNAME,SLSLNAME,SLSEMAIL from AISTESTLIB.SLSREPBIO Order By " & strSortField, sortcon)
- 
-    dadSort.Fill(dstSort)
-    dgrdsalesrep.DataSource= dstSort
-    dgrdsalesrep.DataBind()
-	sortcon.Close()
-End Sub
-
-Sub Button_Click( s As Object, e As EventArgs )
- Response.Redirect( "SearchSlsRep.aspx" )
-End Sub 
-
-Sub Home_Click( s As Object, e As EventArgs )
-	Response.Redirect("SalesRepMenu.aspx")
-End Sub</script>
-<!-- InstanceEndEditable -->
-<!-- InstanceBeginEditable name="head" -->
-<!-- InstanceEndEditable -->
-<style type="text/css">
-<!--
-body {
-	margin-left: 0px;
-	margin-top: 0px;
-	margin-right: 0px;
-	margin-bottom: 0px;
-	font-family:Arial, Helvetica, sans-serif;
-}
-.style1 {
-	font-weight: bold;
-	font-style: italic;
-	color: #FFFFFF;
-}
-.style2 {
-	color: #000000;
-	font-weight: bold;
-	font-size: 25px;
-}
--->
-</style></head>
+        .style2 {
+            color: #000000;
+            font-weight: bold;
+            font-size: 25px;
+        }
+    </style>
+</head>
 
 <body>
-<table width="800" border="0" align="center">
-  <tr>
-    <td valign="top">
-      <table width="799" border="0">
-        <tr>	
-          <td align="left" width="30%" ><img src="../Images/arrowlogoweb.GIF" >
-          </td>
-          <td align="right" width="70%" valign="right" ><span class="style2">WEBSITE MAINTENANCE</span>
-          </td>
-        </tr>
-      </table>
-    </td>
-   </tr>
-   
-   <tr>
-      <td height="3" bgcolor="#CC3333"> </td>
-   </tr>
-       
-  <tr>
-    <td height="281"><!-- InstanceBeginEditable name="EditRegion3" -->
-<p align="center"><strong> ALL STAFFS LIST </strong></p>
-  <center><form runat="Server">
-    <asp:DataGrid
-  	ID="dgrdsalesrep"
-	AllowSorting="True"
-	OnSortCommand="dgrdsalesrep_SortCommand"
-	AllowPaging="true"
-	PagerStyle-Mode="NextPrev"
-	PagerStyle-Position="Bottom"
-	PagerStyle-BackColor="#CCCCCC"
-	PagerStyle-NextPageText="Next Page"
-	PagerStyle-PrevPageText="Prev Page"
-	Font-Size="10pt"
-	AutoGenerateColumns="False"
-	CellPadding="2"
-	PageSize="25"
-	OnPageIndexChanged="dgrdsalesrep_PageIndexChanged"
-	AlternatingItemStyle-Backcolor="#CCCCCC"
-	Runat="Server">
-			
-	<HeaderStyle BackColor="#CCCCCC" HorizontalAlign="Center" Font-Bold="True">
-	</HeaderStyle>
- <Columns>
- 
-  <asp:HyperLinkColumn
-   DataNavigateUrlField="slsrepno"
-   HeaderText="Emp #"
-   DataNavigateUrlFormatString="UpdateSlsRep.aspx?slsrepno={0}"
-   DataTextField="SLSREPNO" /> 
-       
-  <asp:BoundColumn
-   HeaderText="Branch"
-   DataField="SLSBRANCH" 
-   SortExpression="slsbranch"/> 
-  <asp:BoundColumn
-   HeaderText="First Name"
-   DataField="SLSFNAME"
-   SortExpression="slsfname"/>
-  <asp:BoundColumn
-   HeaderText="Last Name"
-   DataField="SLSLNAME"
-   SortExpression="slslname"/> 
-  <asp:BoundColumn
-   HeaderText="E-Mail"
-   DataField="SLSEMAIL"/> 
-   
-   </Columns>
-			
-    </asp:DataGrid>    
-      <table width="825" border="0" bordercolor="#FFFFFF" bgcolor="#FFFFFF">
+    <table width="800" border="0" align="center">
         <tr>
-          <td width="245" bgcolor="#FFFFFF"></td>
-          <td width="83" bgcolor="#FFFFFF"></td>
-          <td width="164" bgcolor="#FFFFFF"><asp:Button
-                   Text="Return to Menu"
-                   OnClick="Home_Click"
-                   runat="Server" /> </td>
-          <td width="315" bgcolor="#FFFFFF"></td>
+            <td valign="top">
+                <table width="799" border="0">
+                    <tr>
+                        <td align="left" width="30%">
+                            <img src="Images/arrowlogoweb.GIF">
+                        </td>
+                        <td align="right" width="70%" valign="right"><span class="style2">WEBSITE MAINTENANCE</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
         </tr>
-      </table>
-	  </form></center> 	
-	<!-- InstanceEndEditable --></td>
-  </tr>
-  
-  <tr>
-    <td valign="top">
-         <table width="799" border="0">
-              <tr>
-                <td height="12" bgcolor="#cc3333"> </td>
-              </tr>
-         </table>
-    </td>
-  </tr>
-</table>
+
+        <tr>
+            <td height="3" bgcolor="#CC3333"></td>
+        </tr>
+
+        <tr>
+            <td height="281">
+                <p align="center"><strong>ALL STAFFS LIST </strong></p>
+                <center>
+                    <form runat="Server">
+                        <asp:DataGrid
+                            ID="dgrdsalesrep"
+                            AllowSorting="True"
+                            OnSortCommand="dgrdsalesrep_SortCommand"
+                            AllowPaging="true"
+                            PagerStyle-Mode="NumericPages"
+                            PagerStyle-Position="Bottom"
+                            PagerStyle-BackColor="#CCCCCC"
+                            PagerStyle-HorizontalAlign="Center"
+                            Font-Size="10pt"
+                            AutoGenerateColumns="False"
+                            CellPadding="2"
+                            PageSize="20"
+                            OnPageIndexChanged="dgrdsalesrep_PageIndexChanged"
+                            AlternatingItemStyle-BackColor="#CCCCCC"
+                            runat="Server">
+
+                            <HeaderStyle BackColor="#CCCCCC" HorizontalAlign="Center" Font-Bold="True"></HeaderStyle>
+                            <Columns>
+
+                                <asp:BoundColumn
+                                    HeaderText="Emp #"
+                                    DataField="SLSREPNO"
+                                    SortExpression="SLSREPNO" />
+                                <asp:BoundColumn
+                                    HeaderText="Branch"
+                                    DataField="SLSBRANCH"
+                                    SortExpression="slsbranch" />
+                                <asp:BoundColumn
+                                    HeaderText="First Name"
+                                    DataField="SLSFNAME"
+                                    SortExpression="slsfname" />
+                                <asp:BoundColumn
+                                    HeaderText="Last Name"
+                                    DataField="SLSLNAME"
+                                    SortExpression="slslname" />
+                                <asp:BoundColumn
+                                    HeaderText="E-Mail"
+                                    DataField="SLSEMAIL" />
+                                <asp:BoundColumn
+                                    HeaderText="Phone"
+                                    DataField="SLSPHONE"
+                                    SortExpression="SLSPHONE" />
+                            </Columns>
+
+                        </asp:DataGrid>
+                        <table width="825" border="0" bordercolor="#FFFFFF" bgcolor="#FFFFFF" height="50">
+                            <tr>
+                                <td width="164" bgcolor="#FFFFFF" align="center">
+                                    <asp:Button
+                                        Text="Return to Menu"
+                                        OnClick="Home_Click"
+                                        runat="Server" />
+                                </td>
+                            </tr>
+                        </table>
+                    </form>
+                </center>
+            </td>
+        </tr>
+
+        <tr>
+            <td valign="top">
+                <table width="100%" border="0">
+                    <tr>
+                        <td height="12" bgcolor="#cc3333"></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
-<!-- InstanceEnd --></html>
+</html>
