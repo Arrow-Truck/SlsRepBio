@@ -29,7 +29,9 @@
             Dim con = New iDB2Connection(ConfigurationManager.AppSettings("ConnString"))
             con.Open()
 
-            Dim strSql = "Select * from SLSREPBIO where  SLSBRANCH Like ('%" & lblBranch.Text & "%')" + "  Order by " + strSortField
+            Dim strSql = "SELECT CASE WHEN s.USRUSER IS NULL THEN 'N' ELSE 'Y' END AS ISACTIVE, b.* FROM SLSREPBIO b " +
+                            "LEFT JOIN SYSUSER s On s.USREMPNO = b.SLSREPNO And s.USRTDATE = 0 " +
+                            "Where SLSBRANCH Like ('%" & lblBranch.Text & "%')" + "  Order by ISACTIVE DESC, " + strSortField
             Dim dataSelect = New iDB2DataAdapter(strSql, con)
 
             Dim dstSelect = New DataSet
@@ -55,42 +57,43 @@
 
         Sub dgrdsalesrep_ItemDataBound(s As Object, e As DataGridItemEventArgs)
             If e.Item.ItemType = ListItemType.Item Then
-                e.Item.Cells(6).Attributes.Add("onclick", "return confirm('Are you sure you want to delete?');")
+                e.Item.Cells(7).Attributes.Add("onclick", "return confirm('Are you sure you want to delete?');")
             End If
         End Sub
 
 
         Sub dgrdsalesrep_ItemCommand(s As Object, e As DataGridCommandEventArgs)
 
+            Dim repNo As String = e.Item.Cells(0).Text
+
             If e.CommandName = "Delete" Then
-                Dim deletecon As New iDB2Connection
-                Dim cmdDelete As iDB2Command
-                Dim strDelete As String
 
-                'deletecon.ConnectionString = ConfigurationManager.AppSettings("ConnString")
-                'deletecon.Open()
+                Dim con As New iDB2Connection
+                con.ConnectionString = ConfigurationManager.AppSettings("ConnString")
+                con.Open()
 
-                'Dim itemCell As TableCell = e.Item.Cells(0)
-                'Dim item As String = itemCell.Text
-                'strSls = item
+                Dim strSql = "Delete from SLSREPBIO Where SLSREPNO=? and SLSBRANCH = ? "
 
+                Dim cmd = New iDB2Command(strSql, con)
+                cmd.Parameters.Add("@SLSREPNO", repNo)
+                cmd.Parameters.Add("@SLSBRANCH", lblBranch.Text)
 
-                'strDelete = "Delete from SLSREPBIO Where SLSREPNO=? and SLSBRANCH = '" & strbranch & "' "
+                cmd.ExecuteNonQuery()
+                con.Close()
 
-                'cmdDelete = New iDB2Command(strDelete, deletecon)
-                'cmdDelete.Parameters.Add("@SLSREPNO", CInt(strSls))
+                GetReps()
 
-                'cmdDelete.ExecuteNonQuery()
-                'deletecon.Close()
+            ElseIf e.CommandName = "View" Then
 
-                ''Redirect back to menu
-                'Response.Redirect("SalesRepMenu.aspx?branch=" + strbranch)
+                Response.Redirect("UpdateSlsRep.aspx?slsrepno=" + repNo)
+
             End If
         End Sub
 
         Sub Home_Click(s As Object, e As EventArgs)
             Response.Redirect("SalesRepMenu.aspx")
         End Sub
+
     </script>
 
     <style type="text/css">
@@ -164,12 +167,15 @@
 
                                 <HeaderStyle BackColor="#CCCCCC" HorizontalAlign="Center" Font-Bold="True"></HeaderStyle>
                                 <Columns>
-
-                                    <asp:HyperLinkColumn
-                                        DataNavigateUrlField="slsrepno"
+                                    <asp:BoundColumn
+                                        HeaderText="Emp # "
+                                        DataField="SLSREPNO"
+                                        Visible="false" />
+                                    <asp:ButtonColumn
                                         HeaderText="Emp #"
-                                        DataNavigateUrlFormatString="UpdateSlsRep.aspx?slsrepno={0}"
-                                        DataTextField="SLSREPNO" />
+                                        DataTextField="SLSREPNO"
+                                        SortExpression="slsrepno"
+                                        CommandName="View" />
                                     <asp:BoundColumn
                                         HeaderText="Branch"
                                         DataField="SLSBRANCH"
@@ -190,6 +196,12 @@
                                         HeaderText="Phone"
                                         DataField="SLSPHONE"
                                         SortExpression="SLSPHONE" />
+                                    <asp:BoundColumn
+                                        HeaderText="Active"
+                                        DataField="ISACTIVE"
+                                        SortExpression="ISACTIVE">
+                                        <ItemStyle HorizontalAlign ="Center" />
+                                    </asp:BoundColumn>
                                     <asp:ButtonColumn
                                         HeaderText="Action"
                                         CommandName="Delete"

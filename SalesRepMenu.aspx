@@ -172,7 +172,7 @@
                                     <br>
                                     <br>
                                     <asp:Button
-                                        Text="View All Branch Staffs" Width="200"
+                                        Text="View All Branch Active Staffs" Width="200"
                                         OnClick="ViewAllRep"
                                         runat="server" />
                                     <br>

@@ -268,13 +268,13 @@
                         <tr>
                             <td width="129">Emp ID:</td>
                             <td width="681">
-                                <asp:label ID="txtRepID" runat="server" />
+                                <asp:Label ID="txtRepID" runat="server" />
                             </td>
                         </tr>
                         <tr>
                             <td width="129">Branch:</td>
                             <td>
-                                <asp:label ID="lblBranchText" runat="server" />
+                                <asp:Label ID="lblBranchText" runat="server" />
                                 <asp:Label ID="lblBranch" runat="server" Visible="false" /></td>
                         </tr>
                         <tr>
@@ -452,14 +452,14 @@
                         <tr>
                             <td colspan="5" align="center">
                                 <asp:LinkButton
-                                    Text="  Return to Search  "
+                                    Text="Return to Staff List"
                                     OnClick="Return_Click"
                                     runat="Server" />
                                 &nbsp; &nbsp; &nbsp;
-            <asp:LinkButton
-                Text="Return to Menu"
-                OnClick="Home_Click"
-                runat="Server" />
+                                <asp:LinkButton
+                                    Text="Return to Menu"
+                                    OnClick="Home_Click"
+                                    runat="Server" />
                             </td>
                         </tr>
                     </table>

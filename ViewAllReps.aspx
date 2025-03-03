@@ -33,7 +33,11 @@
             Dim con = New iDB2Connection(ConfigurationManager.AppSettings("ConnString"))
             con.Open()
 
-            Dim strSql = "Select * from SLSREPBIO Order by " + strSortField
+            Dim strSql = "Select b.* from SLSREPBIO b " +
+                            "JOIN SYSUSER s ON s.USREMPNO = b.SLSREPNO AND s.USRTDATE = 0 " +
+                            "JOIN BRANCH800 b8 ON b8.BRANCH = b.SLSBRANCH AND b8.ACTIVE = 'Y' " +
+                            "Order by " + strSortField
+
             Dim dataSelect = New iDB2DataAdapter(strSql, con)
 
             Dim dstSelect = New DataSet
@@ -107,7 +111,7 @@
 
         <tr>
             <td height="281">
-                <p align="center"><strong>ALL STAFFS LIST </strong></p>
+                <p align="center"><strong>ALL ACTIVE STAFFS LIST </strong></p>
                 <center>
                     <form runat="Server">
                         <asp:DataGrid
